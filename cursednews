@@ -1,0 +1,258 @@
+#!/usr/bin/env python3
+
+# The MIT License (MIT)
+#
+# Copyright (c) 2021 Donald Falk
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+# Requires: python3 -m pip install requests
+#
+
+import curses
+import requests
+import time
+import traceback
+
+from os.path import expanduser
+from lxml import etree
+from lxml.etree import Element
+ 
+class CursedNews:    
+ 
+    def __init__(self):
+        self.config_xml = expanduser('~/.config/cursednews/cursednews.xml')
+        self.articles_url = "https://newsapi.org/v1/articles"
+        self.sources_url = "https://newsapi.org/v1/sources"  
+        self.screen = None
+        self.rows = None
+        self.cols = None
+        self.apad = None
+        self.status = None
+        self.tree = None
+        self.keycode = None
+        self.source = []
+        self.title = []
+        self.article = []
+        self.trim = False
+
+    def init_curses():
+        n.screen = curses.initscr()
+        curses.curs_set(False)
+        n.screen.border()
+        n.rows, n.cols = n.screen.getmaxyx()
+        n.screen.addstr(n.rows-1, n.cols-20, 'rows {} columns {}'.format(n.rows, n.cols))
+        n.screen.refresh()
+
+    def status_window(message):
+        n.status = curses.newwin(3, n.cols, 0, 0)
+        n.status.erase()
+        n.status.border()
+        n.status.addstr(1, 2, message)
+        n.status.refresh()
+        time.sleep(1)
+
+    def retrieve_api_key():
+        root = n.tree.getroot()
+        for key in root.iter('news_api_key'):
+            n.keycode = key.text
+        if not n.keycode:
+            CursedNews.status_window("failed to locate api key in config xml file.")
+            return
+        if len(n.keycode) == 32:
+            int(n.keycode, 16)
+        else:
+            CursedNews.status_window("invalid api key format.")
+
+    def scan_sources():
+        n.apad = curses.newpad(n.rows-1, n.cols)
+        n.apad.scrollok(True)
+        n.apad.idlok(True)
+        n.apad_pos = 0
+        n.apad.refresh(3, 2, 3, 2, n.rows-1, n.cols-2)
+        response = requests.get(n.sources_url)
+        json = response.json()
+        line = 0
+        row = 1   
+        for source in json['sources']:
+            n.source.append(source['id'])
+            n.apad.hline(row+2, 2, ord(' '), n.cols-2)
+            if row < n.rows-4: n.apad.hline(row+3, 2, ord(' '), n.cols-2)
+            n.apad.addstr(row+2, 2, '{0}: <{1}> {2}'.format(line, source['id'], source['name']))
+            n.apad.refresh(3, 2, 3, 2, n.rows-1, n.cols-2)
+            time.sleep(.3)
+            line += 1
+            row += 1
+            if  row > n.rows-4:
+                row = 1
+
+    def trim_sources():
+        index = 0
+        while index < len(n.source):
+            addkey = True
+            root = n.tree.getroot()
+            for source in root.iter(n.source[index]):
+                if source.text != "default":
+                    n.trim = True
+                addkey = False
+            if addkey:
+                child = Element(n.source[index])
+                child.text = "new"
+                root.append(child)
+            index += 1
+        index = 0
+        while index < len(n.source):
+            root = n.tree.getroot()
+            for source in root.iter(n.source[index]):
+                if n.trim:
+                    if source.text == "new":
+                        source.text = "include"
+                else:
+                    if source.text == "new":
+                        source.text = "default"
+            index += 1
+        n.tree.write(n.config_xml, pretty_print=True)
+
+    def clear_pad():
+        for row in range(1, n.rows-3):
+            n.apad.hline(row+2, 2, ord(' '), n.cols-2)
+        n.apad.refresh(3, 2, 3, 2, n.rows-1, n.cols-2)
+
+    def scan_headlines():
+        index = 0
+        while True:
+            trim = False
+            if n.trim:
+                root = n.tree.getroot() 
+                for source in root.iter(n.source[index]):
+                    if source.text == "default": 
+                        trim=True
+            if trim:
+                index += 1
+                continue
+            source = 'scanning headlines from <{0}>...'.format(n.source[index]) 
+            CursedNews.status_window(source)
+            CursedNews.clear_pad()
+            url = "?source={news_id}&apiKey="
+            response = requests.get((n.articles_url+url+n.keycode).format(news_id=n.source[index]))
+            json = response.json()
+            row = 0
+            article_list = []
+            n.title.clear()
+            n.article.clear()
+            for article in json['articles']:
+                n.title.append(article['title'])
+                n.article.append(article['description'])
+                title = article['title'][:n.cols-10] + "..."
+                n.apad.addstr(row+3, 2, '{0}: {1}'.format(row, title))
+                n.apad.refresh(3, 2, 3, 2, n.rows-1, n.cols-2)
+                time.sleep(.15)
+                row += 1
+                if row > 9:
+                    break
+            time.sleep(5)
+            index += 1
+            if index == len(n.source):
+                index = 0
+            curses.halfdelay(1)
+            curses.noecho()
+            c = n.screen.getch(1, 1)
+            if c == ord('q') or c == ord('Q'):
+                break
+            if c == ord('p') or c == ord('P'):
+                while True:
+                    c = n.screen.getch(1, 1)
+                    if c == ord('r') or c == ord('R'):
+                        break
+                    if c >= ord('1') and c <= ord('9'):
+                        CursedNews.display_content(c-48)
+                    if c == ord('0'):
+                        CursedNews.display_content(0)
+                    if c == ord('q') or c == ord('Q'):
+                        break
+                    if c == ord('l') or c == ord('L'):
+                        CursedNews.list_content(index-1)
+                if c == ord('q') or c == ord('Q'):
+                    break
+
+    def display_content(piece):
+            article = 'display article number {0} summary...'.format(piece) 
+            CursedNews.status_window(article)
+            CursedNews.clear_pad()
+            row = 0
+            col = 2
+            w = 0
+            words = n.article[piece].split()
+            while w < len(words): 
+                if len(words[w]) + col <= n.cols-2:
+                    n.apad.addstr(row+3, col, words[w])
+                    col = col + len(words[w]) + 1
+                    w += 1
+                else:
+                    row += 1
+                    col = 2
+            n.apad.refresh(3, 2, 3, 2, n.rows-1, n.cols-2)  
+
+    def list_content(index):
+            if index < 0: index = 0
+            source = 'scanning headlines from <{0}>...'.format(n.source[index]) 
+            CursedNews.status_window(source)
+            CursedNews.clear_pad()
+            row = 0
+            while row < len(n.article):
+                title = n.title[row][:n.cols-10] + "..."
+                n.apad.addstr(row+3, 2, '{0}: {1}'.format(row, title))
+                row += 1
+            n.apad.refresh(3, 2, 3, 2, n.rows-1, n.cols-2) 
+
+    def listen():
+        curses.noecho()
+        while True:
+            c = n.screen.getch(1, 1)
+            if c == ord('q') or c == ord('Q'):
+                break
+
+    def exit():
+        curses.endwin()
+
+    def run():
+        CursedNews.init_curses()
+        CursedNews.status_window("connecting to news api...")
+        response = requests.get("https://newsapi.org/")
+        CursedNews.status_window("opening config xml...")
+        parser = etree.XMLParser(remove_blank_text=True)
+        n.tree = etree.parse(n.config_xml, parser)
+        CursedNews.status_window("retrieving api key...")
+        CursedNews.retrieve_api_key()   
+        CursedNews.status_window("scanning news sources...") 
+        CursedNews.scan_sources()
+        CursedNews.trim_sources()
+        CursedNews.scan_headlines()
+        CursedNews.exit()     
+ 
+if __name__ == '__main__':
+    n = CursedNews()
+    try:
+        CursedNews.run()
+    except Exception as exception:
+        exceptiondata = traceback.format_exc().splitlines()
+        curses.curs_set(True)
+        CursedNews.status_window("Error in" + exceptiondata[len(exceptiondata)-3])
+        CursedNews.listen()
+        CursedNews.exit() 
