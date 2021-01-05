@@ -57,25 +57,19 @@ python3 -m pip install requests
 #curses
 #linux
 
-To install:
+## Installation:
 git clone https://github.com/dwfalk/cursednews
-
+cd cursednews
 chmod +x cursednews
-
 apt install python3-lxml
-
 apt install python3-pip
-
 python3 -m pip install requests
-
 register for a free newsapi.org key [here](http://newsapi.org/register).
-
 create initial config file **.config/cursednews/cursednews.xml** using the example below
-
 ```xml
 <cursednews>
   <news_api_key>YOUR_NEWS_API_KEY_GOES_HERE</news_api_key>
 </cursednews>
 ```
-
+./cursednews
 
