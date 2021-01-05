@@ -5,19 +5,22 @@ From my desire to augment eDEX-UI by GitSquared with a news search feature that 
 
 ## Examples 
 * "scanning news sources..."
+```
 ┌─────────────────────────
 │ scanning news sources...
 └─────────────────────────
-│ 0: ```xml<abc-news-au>``` ABC News (AU)
-│ 1: ```xml<al-jazeera-english>``` Al Jazeera English
-│ 2: ```xml<ars-technica>``` Ars Technica
-│ 3: ```xml<associated-press>``` Associated Press
-│ 4: ```xml<bbc-news>``` BBC News
-│ 5: ```xml<bbc-sport>``` BBC Sport 
+│ 0: <abc-news-au> ABC News (AU)
+│ 1: <al-jazeera-english> Al Jazeera English
+│ 2: <ars-technica> Ars Technica
+│ 3: <associated-press> Associated Press
+│ 4: <bbc-news> BBC News
+│ 5: <bbc-sport> BBC Sport 
+```
 
 * "scanning headlines"
+```
 ┌─────────────────────────
-│ scanning headlines for ```xml<associated-press>```...
+│ scanning headlines for <associated-press>...
 └─────────────────────────
 │ 0: Pandemic haunts new year as virus growth outpaces vaccines...
 │ 1: Georgia deciding US Senate control in election's final day...
@@ -29,7 +32,7 @@ From my desire to augment eDEX-UI by GitSquared with a news search feature that 
 │ 7: EXPLAINER: Breaking down Biden’s Iran problem...
 │ 8: One Good Thing: Theft leads to community giving in Miami...
 │ 9: American Airlines is grounding emotional-support animals...
-
+```
 * "q" - quits
 * "p" - pauses
 * "r" - resumes
@@ -56,11 +59,17 @@ python3 -m pip install requests
 
 To install:
 git clone https://github.com/dwfalk/cursednews
+
 chmod +x cursednews
+
 apt install python3-lxml
+
 apt install python3-pip
+
 python3 -m pip install requests
-register for a free newsapi.org key [here](http://newsapi.org/register) .
+
+register for a free newsapi.org key [here](http://newsapi.org/register).
+
 create initial config file .config/cursednews/cursednews.xml using the example below
 
 ```xml
