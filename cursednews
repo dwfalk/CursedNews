@@ -137,6 +137,8 @@ class CursedNews:
     def scan_headlines():
         index = 0
         while True:
+            if index >= len(n.source):
+                index = 0
             trim = False
             if n.trim:
                 root = n.tree.getroot() 
@@ -168,8 +170,6 @@ class CursedNews:
                     break
             time.sleep(5)
             index += 1
-            if index == len(n.source):
-                index = 0
             curses.halfdelay(1)
             curses.noecho()
             c = n.screen.getch(1, 1)
