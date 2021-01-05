@@ -65,7 +65,7 @@ python3 -m pip install requests
 - apt install python3-pip
 - python3 -m pip install requests
 - register for a free newsapi.org key [here](http://newsapi.org/register). *Note: Free version limited to 100 requests in a 24hr period.*
-- create initial config file **.config/cursednews/cursednews.xml** using the example below
+- create initial config file **~/.config/cursednews/cursednews.xml** using the example below
 ```xml
 <cursednews>
   <news_api_key>YOUR_NEWS_API_KEY_GOES_HERE</news_api_key>
