@@ -6,9 +6,9 @@ From my desire to augment eDEX-UI by GitSquared with a news search feature that 
 ## Examples 
 * "scanning news sources..."
 ```
-┌─────────────────────────
+┌───────────────────────────────────────────────────────────────────────────
 │ scanning news sources...
-└─────────────────────────
+└───────────────────────────────────────────────────────────────────────────
 │ 0: <abc-news-au> ABC News (AU)
 │ 1: <al-jazeera-english> Al Jazeera English
 │ 2: <ars-technica> Ars Technica
@@ -19,9 +19,9 @@ From my desire to augment eDEX-UI by GitSquared with a news search feature that 
 
 * "scanning headlines"
 ```
-┌─────────────────────────
+┌───────────────────────────────────────────────────────────────────────────
 │ scanning headlines for <associated-press>...
-└─────────────────────────
+└───────────────────────────────────────────────────────────────────────────
 │ 0: Pandemic haunts new year as virus growth outpaces vaccines...
 │ 1: Georgia deciding US Senate control in election's final day...
 │ 2: Teen charged in Wisconsin protest shootings to enter plea...
@@ -70,7 +70,7 @@ python3 -m pip install requests
 
 register for a free newsapi.org key [here](http://newsapi.org/register).
 
-create initial config file .config/cursednews/cursednews.xml using the example below
+create initial config file **.config/cursednews/cursednews.xml** using the example below
 
 ```xml
 <cursednews>
