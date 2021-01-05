@@ -41,7 +41,7 @@ From my desire to augment eDEX-UI by GitSquared *(check it out if you haven't al
 * ...
 * "l" - return to list from summary
 
-* You can also edit the populated **.config/cursednews/cursednews.xml** and "include" only specific sources rather than allow them to "default".
+* You can also edit the populated **~/.config/cursednews/cursednews.xml** and "include" only specific sources rather than allow them to "default".
 
 ## Credits 
 @dwfalk - Original developer
