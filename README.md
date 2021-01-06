@@ -1,5 +1,5 @@
 # cursednews
-CursedNews python app for Linux
+A python curses news app for Linux
 ## About 
 From my desire to augment eDEX-UI by GitSquared *(check it out if you haven't already, it's an awesome piece of work)* with a news search feature that is something akin to Neo's newspaper search for Morpheus in The Matrix. 
 
